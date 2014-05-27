@@ -1,0 +1,10 @@
+*~
+*.bak
+Makefile
+blib/
+inc/
+MANIFEST
+META.yml
+MYMETA.yml
+MYMETA.json
+pm_to_blib

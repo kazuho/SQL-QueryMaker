@@ -1,0 +1,10 @@
+^MANIFEST\.
+^Makefile$
+~$
+^#
+^blib/
+^pm_to_blib$
+^MakeMaker-\d
+\.gz$
+^\.git
+\.git/
