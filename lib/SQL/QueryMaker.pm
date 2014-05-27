@@ -24,13 +24,8 @@ our @EXPORT = qw(sql_op sql_raw);
                 if ref $args ne 'ARRAY';
             my $column = shift;
             # build and return the compiler
-            return SQL::QueryMaker->_new(sub {
-                my ($supplied_colname, $quote_cb) = @_;
-                if ($supplied_colname) {
-                    Carp::croak("cannot rebind column for $fn('$column', ...) to: $supplied_colname")
-                        if defined $column;
-                    $column = $supplied_colname;
-                }
+            return SQL::QueryMaker->_new($column, sub {
+                my ($column, $quote_cb) = @_;
                 return $op eq 'AND' ? '0=1' : '1=1'
                     if @$args == 0;
                 my @term;
@@ -74,16 +69,10 @@ our @EXPORT = qw(sql_op sql_raw);
                 if ref $args ne 'ARRAY';
             my $column = shift;
             # build and return the compiler
-            return SQL::QueryMaker->_new(sub {
-                my ($supplied_colname, $quote_cb) = @_;
-                if (defined $supplied_colname) {
-                    Carp::croak("cannot rebind column for $fn('$column', ...) to: $supplied_colname")
-                        if defined $column;
-                    $column = $supplied_colname;
-                } else {
-                    Carp::croak("no column binding for $fn")
-                        unless defined $column;
-                }
+            return SQL::QueryMaker->_new($column, sub {
+                my ($column, $quote_cb) = @_;
+                Carp::croak("no column binding for $fn")
+                    unless defined $column;
                 return $op eq 'IN' ? '0=1' : '1=1'
                     if @$args == 0;
                 my @term;
@@ -154,16 +143,10 @@ sub sql_op {
 
 sub _sql_op {
     my ($fn, $builder, $column, $args) = @_;
-    return SQL::QueryMaker->_new(sub {
-        my ($supplied_colname, $quote_cb) = @_;
-        if (defined $supplied_colname) {
-            Carp::croak("cannot rebind column for $fn('$column', ...) to: $supplied_colname")
-                if defined $column;
-            $column = $supplied_colname;
-        } else {
-            Carp::croak("no column binding for $fn(args...)")
-                unless defined $column;
-        }
+    return SQL::QueryMaker->_new($column, sub {
+        my ($column, $quote_cb) = @_;
+        Carp::croak("no column binding for $fn(args...)")
+            unless defined $column;
         my $term = $builder->($quote_cb->($column));
         return $term;
     }, $args);
@@ -171,7 +154,7 @@ sub _sql_op {
 
 sub sql_raw {
     my ($sql, @bind) = @_;
-    return SQL::QueryMaker->_new(sub {
+    return SQL::QueryMaker->_new(undef, sub {
         return $sql;
     }, \@bind);
 }
@@ -191,17 +174,29 @@ sub _compile_builder {
 }
 
 sub _new {
-    my ($class, $as_sql, $bind) = @_;
+    my ($class, $column, $as_sql, $bind) = @_;
     return bless {
+        column => $column,
         as_sql => $as_sql,
         bind   => $bind,
     }, $class;
 }
 
+sub bind_column {
+    my ($self, $column) = @_;
+    if (defined $column) {
+        Carp::croak('cannot rebind column for \`' . $self->{column} . "` to: `$column`")
+            if defined $self->{column};
+    }
+    $self->{column} = $column;
+}
+
 sub as_sql {
     my ($self, $supplied_colname, $quote_cb) = @_;
+    $self->bind_column($supplied_colname)
+        if defined $supplied_colname;
     $quote_cb ||= \&quote_identifier;
-    return $self->{as_sql}->($supplied_colname, $quote_cb);
+    return $self->{as_sql}->($self->{column}, $quote_cb);
 }
 
 sub bind {
