@@ -10,6 +10,12 @@ SYNOPSIS
         $query->as_sql;                 # `foo`<?
         $query->bind;                   # ($v)
 
+        my $query = sql_in(foo => [
+            $v1, $v2, $v3,
+        ]);
+        $query->as_sql;                 # `foo` IN (?,?,?)
+        $query->bind;                   # ($v1,$v2,$v3)
+
         my $query = sql_and(foo => [
             sql_ge($min),
             sql_lt($max)
@@ -24,11 +30,12 @@ SYNOPSIS
         $query->as_sql;                 # `foo`=? AND `bar`=?
         $query->bind;                   # ($v1,$v2)
 
-        my $query = sql_in(foo => [
-            $v1, $v2, $v3,
+        my $query = sql_and([
+            foo => $v1,
+            bar => sql_lt($v2),
         ]);
-        $query->as_sql;                 # `foo` IN (?,?,?)
-        $query->bind;                   # ($v1,$v2,$v3)
+        $query->as_sql;                 # `foo`=? AND `bar`<?
+        $query->bind;                   # ($v1,$v2)
 
 DESCRIPTION
     This module concentrates on providing an expressive, concise way to
@@ -75,6 +82,21 @@ FUNCTIONS
             sql_ge($min),
             sql_lt($max),
         ])
+
+  "sql_and(\%conditions)"
+  "sql_or(\%conditions)"
+    Aggregates given pairs of column names and comparators into a logical
+    expression.
+
+    The value part is composed of as the argument to the "=" operator if it
+    is not a blessed reference.
+
+        my $query = sql_and({
+            foo => 'abc',
+            bar => sql_lt(123),
+        });
+        $query->as_sql;             # => `foo`=? AND bar<?
+        $query->bind;               # => ('abc', 123)
 
   "sql_op([$column,] $op_sql, \@bind_values)"
     Generates a comparator object that tests a column using the given SQL

@@ -20,9 +20,25 @@ our @EXPORT = qw(sql_op sql_raw);
         *{__PACKAGE__ . "::$fn"} = sub {
             # fetch args
             my $args = pop;
-            Carp::croak("arguments to `$op` must be contained in an arrayref")
-                if ref $args ne 'ARRAY';
             my $column = shift;
+            if (ref $args eq 'HASH') {
+                Carp::croak("cannot specify the column name as another argument when the conditions are listed using hashref")
+                    if defined $column;
+                my @conds;
+                for my $column (keys %$args) {
+                    my $value = $args->{$column};
+                    if (blessed($value)) {
+                        $value->bind_column($column);
+                    } else {
+                        $value = sql_eq($column, $value);
+                    }
+                    push @conds, $value;
+                }
+                $args = \@conds;
+            } else {
+                Carp::croak("arguments to `$op` must be contained in an arrayref or a hashref")
+                    if ref $args ne 'ARRAY';
+            }
             # build and return the compiler
             return SQL::QueryMaker->_new($column, sub {
                 my ($column, $quote_cb) = @_;
@@ -226,6 +242,12 @@ SQL::QueryMaker - helper functions for SQL query generation
     $query->as_sql;                 # `foo`<?
     $query->bind;                   # ($v)
 
+    my $query = sql_in(foo => [
+        $v1, $v2, $v3,
+    ]);
+    $query->as_sql;                 # `foo` IN (?,?,?)
+    $query->bind;                   # ($v1,$v2,$v3)
+
     my $query = sql_and(foo => [
         sql_ge($min),
         sql_lt($max)
@@ -240,11 +262,12 @@ SQL::QueryMaker - helper functions for SQL query generation
     $query->as_sql;                 # `foo`=? AND `bar`=?
     $query->bind;                   # ($v1,$v2)
 
-    my $query = sql_in(foo => [
-        $v1, $v2, $v3,
+    my $query = sql_and([
+        foo => $v1,
+        bar => sql_lt($v2),
     ]);
-    $query->as_sql;                 # `foo` IN (?,?,?)
-    $query->bind;                   # ($v1,$v2,$v3)
+    $query->as_sql;                 # `foo`=? AND `bar`<?
+    $query->bind;                   # ($v1,$v2)
 
 =head1 DESCRIPTION
 
@@ -307,6 +330,24 @@ C<as_sql> method is being called, as show in the second example below.
         sql_ge($min),
         sql_lt($max),
     ])
+
+=head2 C<< sql_and(\%conditions) >>
+
+=head2 C<< sql_or(\%conditions) >>
+
+Aggregates given pairs of column names and comparators into a logical
+expression.
+
+The value part is composed of as the argument to the C<=> operator if it is
+not a blessed reference.
+
+    my $query = sql_and({
+        foo => 'abc',
+        bar => sql_lt(123),
+    });
+    $query->as_sql;             # => `foo`=? AND bar<?
+    $query->bind;               # => ('abc', 123)
+
 
 =head2 C<< sql_op([$column,] $op_sql, \@bind_values) >>
 
