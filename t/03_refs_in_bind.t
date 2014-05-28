@@ -3,24 +3,28 @@ use warnings;
 use SQL::QueryMaker;
 use Test::More;
 
-sub doit {
-    my ($code, $name) = @_;
-    local $@;
-    my $query = $code->();
-    ok ! defined $query, "$name - does not return anything";
-    ok $@, "$name - error is thrown";
+sub checkerr {
+    my $code = shift;
+    return sub {
+        local $@;
+        my $query = eval {
+            $code->();
+        };
+        ok ! defined $query, "does not return anything";
+        ok $@, "error is thrown";
+    };
 }
 
-doit(sub { eval {
+subtest "sql_eq" => checkerr(sub {
     sql_eq('foo' => [1,2,3]);
-}}, "sql_eq");
+});
 
-doit(sub { eval {
+subtest "sql_in" => checkerr(sub {
     sql_in('foo' => [[1,2,3], 4]);
-}}, "sqn_in");
+});
 
-doit(sub { eval {
+subtest "sql_and" => checkerr(sub {
     sql_and(a => [ [1,2], 3]);
-}}, "sql_and");
+});
 
 done_testing;
