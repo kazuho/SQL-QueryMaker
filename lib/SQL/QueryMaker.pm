@@ -191,6 +191,10 @@ sub _compile_builder {
 
 sub _new {
     my ($class, $column, $as_sql, $bind) = @_;
+    for my $b (@$bind) {
+        Carp::croak("cannot bind an arrayref or an hashref")
+            if ref $b && ! blessed($b);
+    }
     return bless {
         column => $column,
         as_sql => $as_sql,
