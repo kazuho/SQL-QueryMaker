@@ -2,7 +2,6 @@ use strict;
 use warnings;
 use Test::More;
 use SQL::QueryMaker;
-use SQL::Maker::Util;
 use Data::Dumper;
 
 open my $fh, '<', 'lib/SQL/QueryMaker.pm' or die "cannot open file: $!";
