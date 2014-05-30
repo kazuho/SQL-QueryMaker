@@ -278,7 +278,7 @@ SQL::QueryMaker - helper functions for SQL query generation
 This module concentrates on providing an expressive, concise way to declare SQL
 expressions by exporting carefully-designed functions.
 It is possible to use the module to generate SQL query conditions and pass them
-as arguments to L<SQL::Maker>.
+as arguments to other more versatile query builders such as L<SQL::Maker>.
 
 The functions exported by the module instantiate comparator objects that build
 SQL expressions when their C<as_sql> method are being invoked.
