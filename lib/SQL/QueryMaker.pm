@@ -452,7 +452,6 @@ L<SQL::Maker>
 
 =head1 LICENSE
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself, or under the MIT License.
 
 =cut
