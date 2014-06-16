@@ -27,7 +27,7 @@ our @EXPORT = qw(sql_op sql_raw);
                 my @conds;
                 for my $column (keys %$args) {
                     my $value = $args->{$column};
-                    if (blessed($value)) {
+                    if (blessed($value) && $value->can('bind_column')) {
                         $value->bind_column($column);
                     } else {
                         $value = sql_eq($column, $value);
@@ -46,7 +46,7 @@ our @EXPORT = qw(sql_op sql_raw);
                     if @$args == 0;
                 my @term;
                 for my $arg (@$args) {
-                    if (blessed($arg)) {
+                    if (blessed($arg) && $arg->can('as_sql')) {
                         my ($term, $bind) = $arg->as_sql($column, $quote_cb);
                         push @term, "($term)";
                     } else {
@@ -60,7 +60,7 @@ our @EXPORT = qw(sql_op sql_raw);
             }, do {
                 my @bind;
                 for my $arg (@$args) {
-                    if (blessed($arg)) {
+                    if (blessed($arg) && $arg->can('as_sql')) {
                         push @bind, $arg->bind();
                     } else {
                         push @bind, $arg;
@@ -93,7 +93,7 @@ our @EXPORT = qw(sql_op sql_raw);
                     if @$args == 0;
                 my @term;
                 for my $arg (@$args) {
-                    if (blessed($arg)) {
+                    if (blessed($arg) && $arg->can('as_sql')) {
                         my $term = $arg->as_sql(undef, $quote_cb);
                         push @term, $term eq '?' ? $term : "($term)"; # emit parens only when necessary
                     } else {
@@ -105,7 +105,7 @@ our @EXPORT = qw(sql_op sql_raw);
             }, do {
                 my @bind;
                 for my $arg (@$args) {
-                    if (blessed($arg)) {
+                    if (blessed($arg) && $arg->can('as_sql')) {
                         push @bind, $arg->bind();
                     } else {
                         push @bind, $arg;
