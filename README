@@ -52,6 +52,7 @@ DESCRIPTION
 
 FUNCTIONS
   "sql_eq([$column,] $value)"
+  "sql_ne([$column,] $value)"
   "sql_lt([$column,] $value)"
   "sql_gt([$column,] $value)"
   "sql_le([$column,] $value)"
@@ -132,6 +133,10 @@ FUNCTIONS
 CHEAT SHEET
         IN:        sql_eq('foo' => 'bar')
         OUT QUERY: '`foo` = ?'
+        OUT BIND:  ('bar')
+
+        IN:        sql_ne('foo' => 'bar')
+        OUT QUERY: '`foo` != ?'
         OUT BIND:  ('bar')
 
         IN:        sql_in('foo' => ['bar', 'baz'])

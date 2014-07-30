@@ -290,6 +290,8 @@ C<as_sql> method.
 
 =head2 C<< sql_eq([$column,] $value) >>
 
+=head2 C<< sql_ne([$column,] $value) >>
+
 =head2 C<< sql_lt([$column,] $value) >>
 
 =head2 C<< sql_gt([$column,] $value) >>
@@ -391,6 +393,10 @@ the C<as_sql> method.
 
     IN:        sql_eq('foo' => 'bar')
     OUT QUERY: '`foo` = ?'
+    OUT BIND:  ('bar')
+
+    IN:        sql_ne('foo' => 'bar')
+    OUT QUERY: '`foo` != ?'
     OUT BIND:  ('bar')
 
     IN:        sql_in('foo' => ['bar', 'baz'])
