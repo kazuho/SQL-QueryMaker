@@ -3,6 +3,7 @@ use 5.008_001;
 use strict;
 use warnings;
 use utf8;
+use Carp ();
 use Exporter qw(import);
 use Scalar::Util qw(blessed);
 
