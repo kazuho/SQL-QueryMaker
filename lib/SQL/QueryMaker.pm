@@ -7,7 +7,7 @@ use Carp ();
 use Exporter qw(import);
 use Scalar::Util qw(blessed);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 our @EXPORT = qw(sql_op sql_raw);
 
